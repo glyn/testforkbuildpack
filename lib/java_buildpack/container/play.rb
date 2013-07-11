@@ -18,6 +18,7 @@ require 'java_buildpack/container/container_utils'
 require 'java_buildpack/repository/configured_item'
 require 'java_buildpack/util/application_cache'
 require 'java_buildpack/util/format_duration'
+require 'java_buildpack/util/play/play_directory_locator'
 require 'pathname'
 
 module JavaBuildpack::Container
@@ -38,7 +39,9 @@ module JavaBuildpack::Container
       @java_home = context[:java_home]
       @java_opts = context[:java_opts]
       @lib_directory = context[:lib_directory]
-      @play_root = Play.play_root @app_dir
+      @play_root = JavaBuildpack::Util::Play.locate_play_application(@app_dir) do |file|
+        Play.start_script(file) && (Play.lib_play_jar(file) || Play.staged_play_jar(file))
+      end
     end
 
     # Detects whether this application is a Play application.
