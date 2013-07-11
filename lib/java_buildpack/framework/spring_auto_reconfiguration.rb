@@ -14,7 +14,7 @@
 # limitations under the License.
 
 require 'java_buildpack/framework'
-require 'java_buildpack/framework/auto_reconfiguration/web_xml_modifier'
+require 'java_buildpack/framework/spring_auto_reconfiguration/web_xml_modifier'
 require 'java_buildpack/repository/configured_item'
 require 'java_buildpack/util/application_cache'
 require 'java_buildpack/util/format_duration'
@@ -22,7 +22,7 @@ require 'java_buildpack/util/format_duration'
 module JavaBuildpack::Framework
 
   # Encapsulates the detect, compile, and release functionality for enabling cloud auto-reconfiguration in applications.
-  class AutoReconfiguration
+  class SpringAutoReconfiguration
 
     # Creates an instance, passing in an arbitrary collection of options.
     #
@@ -34,7 +34,7 @@ module JavaBuildpack::Framework
       @app_dir = context[:app_dir]
       @lib_directory = context[:lib_directory]
       @configuration = context[:configuration]
-      @auto_reconfiguration_version, @auto_reconfiguration_uri = AutoReconfiguration.find_auto_reconfiguration(@app_dir, @configuration)
+      @auto_reconfiguration_version, @auto_reconfiguration_uri = SpringAutoReconfiguration.find_auto_reconfiguration(@app_dir, @configuration)
     end
 
     # Detects whether this application is suitable for auto-reconfiguration
