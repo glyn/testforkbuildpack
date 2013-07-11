@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Configuration for the Spring Auto Reconfiguration framework.
-# Note that the repository is shared with the Play Auto Reconfiguration framework and should be kept in step to
+# Configuration for the Play Auto Reconfiguration framework.
+# Note that the repository is shared with the Spring Auto Reconfiguration framework and should be kept in step to
 # avoid conflicts.
 ---
 version: 0.7.+
