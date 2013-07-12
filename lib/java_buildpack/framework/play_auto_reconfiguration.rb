@@ -78,7 +78,7 @@ module JavaBuildpack::Framework
     end
 
     def self.find_auto_reconfiguration(app_dir, configuration)
-      if play_application? app_dir
+      if JavaBuildpack::Util::Play.locate_play_application app_dir
         version, uri = JavaBuildpack::Repository::ConfiguredItem.find_item(configuration)
       else
         version = nil
@@ -98,17 +98,6 @@ module JavaBuildpack::Framework
       "#{id version}.jar"
     end
 
-    def self.play_application?(app_dir)
-      # Look for an application configuration file in a suitable directory.
-      play_application = false
-      JavaBuildpack::Util::Play.locate_play_application(app_dir) do |file|
-        # Check for application configuration file in a directory `conf`.
-        conf_file_exists = File.exists?(File.join(file, PLAY_APPLICATION_CONFIGURATION_DIRECTORY, PLAY_APPLICATION_CONFIGURATION_FILE))
-        play_application |= conf_file_exists
-        conf_file_exists
-      end
-      play_application
-    end
 
   end
 

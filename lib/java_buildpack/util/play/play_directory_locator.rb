@@ -17,18 +17,48 @@ require 'java_buildpack/play'
 
 module JavaBuildpack::Util::Play
 
-  # Locate a Play application directory in the given application directory matching the given filter.
+  # Locate a Play application directory in the given application directory.
   #
   # @param [String] app_dir the application directory
-  # @param [Proc] filter a filter returning a Boolean when passes a candidate Play application directory
   # @return [Dir, nil] the located Play application directory or `nil` if there is no such
   # @raise if more than one Play application directory is located
-  def self.locate_play_application(app_dir, &filter)
+  def self.locate_play_application(app_dir)
     # A Play application may reside directly in the application directory or in a direct subdirectory of the
     # application directory.
-    roots = Dir[app_dir, File.join(app_dir, '*')].select &filter
+    roots = Dir[app_dir, File.join(app_dir, '*')].select do |file|
+      self.start_script(file) && (self.lib_play_jar(file) || self.staged_play_jar(file))
+    end
     raise "Play application detected in multiple directories: #{roots}" if roots.size > 1
     roots.first
   end
+
+  START_SCRIPT = 'start'.freeze
+
+  PLAY_JAR = 'play*.jar'.freeze
+
+  def self.start_script(root)
+    root && File.directory?(root) ? Dir[File.join(root, START_SCRIPT)].first : false
+  end
+
+  def self.lib(root)
+    File.join root, 'lib'
+  end
+
+  def self.lib_play_jar(root)
+    play_jar(lib(root))
+  end
+
+  def self.play_jar(root)
+    Dir[File.join(root, PLAY_JAR)].first
+  end
+
+  def self.staged(root)
+    File.join root, 'staged'
+  end
+
+  def self.staged_play_jar(root)
+    play_jar(staged(root))
+  end
+
 
 end

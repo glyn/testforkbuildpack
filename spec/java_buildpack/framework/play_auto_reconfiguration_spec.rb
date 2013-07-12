@@ -35,7 +35,7 @@ module JavaBuildpack::Framework
       JavaBuildpack::Repository::ConfiguredItem.stub(:find_item).and_return(AUTO_RECONFIGURATION_DETAILS)
 
       detected = PlayAutoReconfiguration.new(
-        :app_dir => 'spec/fixtures/framework_play_auto_reconfiguration',
+        :app_dir => 'spec/fixtures/container_play',
         :configuration => {}).detect
 
       expect(detected).to eq('auto-reconfiguration-0.6.8')
@@ -43,7 +43,7 @@ module JavaBuildpack::Framework
 
     it 'should not detect without application configuration' do
       detected = PlayAutoReconfiguration.new(
-        :app_dir => 'spec/fixtures/framework_play_no_auto_reconfiguration',
+        :app_dir => 'spec/fixtures/container_play_too_deep',
         :configuration => {}).detect
 
       expect(detected).to be_nil
@@ -59,7 +59,7 @@ module JavaBuildpack::Framework
         application_cache.stub(:get).with('test-auto-reconfiguration-uri').and_yield(File.open('spec/fixtures/stub-auto-reconfiguration.jar'))
 
         PlayAutoReconfiguration.new(
-          :app_dir => 'spec/fixtures/framework_play_auto_reconfiguration',
+          :app_dir => 'spec/fixtures/container_play',
           :lib_directory => lib_directory,
           :configuration => {}).compile
 

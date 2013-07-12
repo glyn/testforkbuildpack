@@ -39,9 +39,7 @@ module JavaBuildpack::Container
       @java_home = context[:java_home]
       @java_opts = context[:java_opts]
       @lib_directory = context[:lib_directory]
-      @play_root = JavaBuildpack::Util::Play.locate_play_application(@app_dir) do |file|
-        Play.start_script(file) && (Play.lib_play_jar(file) || Play.staged_play_jar(file))
-      end
+      @play_root = JavaBuildpack::Util::Play.locate_play_application(@app_dir)
     end
 
     # Detects whether this application is a Play application.
@@ -115,15 +113,6 @@ module JavaBuildpack::Container
           $stderr.puts "-----> WARNING: Could not modify the start script to augment the classpath. Leaving the script unmodified"
         end
       end
-    end
-
-    def self.play_root(app_dir)
-      roots = Dir[app_dir, File.join(app_dir, '*')].select do |file|
-        start_script(file) && (lib_play_jar(file) || staged_play_jar(file))
-      end
-
-      raise "Play application detected in multiple directories: #{roots}" if roots.size > 1
-      roots.first
     end
 
     def self.staged(root)
