@@ -49,9 +49,9 @@ module JavaBuildpack::Container
     end
 
     it 'should fail if a Play application is in more than one directory' do
-      expect {Play.new(
+      expect { Play.new(
           :app_dir => 'spec/fixtures/container_play_duplicate',
-          :configuration => {})}.to raise_error(/multiple/)
+          :configuration => {}) }.to raise_error(/multiple/)
     end
 
     it 'should detect an application with a start script and a suitable Play JAR' do
@@ -79,11 +79,16 @@ module JavaBuildpack::Container
     end
 
     it 'should make the start script executable in the compile step' do
+      File.stub(:read => 'A -cp x B')
       play = Play.new(
           :app_dir => 'spec/fixtures/container_play',
           :configuration => {})
 
       play.should_receive(:system).with('chmod +x spec/fixtures/container_play/application_root/start').and_return('')
+      file_double = double('File')
+      File.stub(:open).with('spec/fixtures/container_play/application_root/start', 'w').and_yield(file_double)
+      file_double.should_receive(:write).with('A -cp x B').and_return(0)
+      ContainerUtils.stub(:libs).and_return([])
 
       play.compile
     end
@@ -93,62 +98,23 @@ module JavaBuildpack::Container
         additional_lib_directory = File.join root, '.lib'
         staged_directory = File.join root, 'staged'
 
-        Dir.mkdir additional_lib_directory
         Dir.mkdir staged_directory
-        FileUtils.touch File.join root, 'start'
+        start_script = File.join root, 'start'
+        FileUtils.touch start_script
         FileUtils.touch File.join staged_directory, 'play_0.0.0.jar'
-        Dir['spec/fixtures/additional_libs/*'].each { |file| system "cp #{file} #{additional_lib_directory}" }
+
+        ContainerUtils.stub(:libs).with(root, additional_lib_directory).and_return([Pathname.new('.lib/test-jar-1.jar'), Pathname.new('.lib/test-jar-2.jar')])
+
+        File.stub(:read => 'A -cp x B')
+        file_double = double('File')
+        File.stub(:open).with(start_script, 'w').and_yield(file_double)
+        file_double.should_receive(:write).with('A -cp x:`dirname $0`/../.lib/test-jar-1.jar:`dirname $0`/../.lib/test-jar-2.jar B').and_return(0)
 
         Play.new(
-          :app_dir => root,
-          :lib_directory => additional_lib_directory,
-          :configuration => {}).compile
+            :app_dir => root,
+            :lib_directory => additional_lib_directory,
+            :configuration => {}).compile
 
-        test_jar_1 = File.join staged_directory, 'test-jar-1.jar'
-        test_jar_2 = File.join staged_directory, 'test-jar-2.jar'
-        test_text = File.join staged_directory, 'test-text.txt'
-
-        expect(File.exists?(test_jar_1)).to be_true
-        expect(File.symlink?(test_jar_1)).to be_true
-        expect(File.readlink(test_jar_1)).to eq('../.lib/test-jar-1.jar')
-
-        expect(File.exists?(test_jar_2)).to be_true
-        expect(File.symlink?(test_jar_2)).to be_true
-        expect(File.readlink(test_jar_2)).to eq('../.lib/test-jar-2.jar')
-
-        expect(File.exists?(test_text)).to be_false
-      end
-    end
-
-    it 'should link additional libraries to lib' do
-      Dir.mktmpdir do |root|
-        additional_lib_directory = File.join root, '.lib'
-        lib_directory = File.join root, 'staged'
-
-        Dir.mkdir additional_lib_directory
-        Dir.mkdir lib_directory
-        FileUtils.touch File.join root, 'start'
-        FileUtils.touch File.join lib_directory, 'play_0.0.0.jar'
-        Dir['spec/fixtures/additional_libs/*'].each { |file| system "cp #{file} #{additional_lib_directory}" }
-
-        Play.new(
-          :app_dir => root,
-          :lib_directory => additional_lib_directory,
-          :configuration => {}).compile
-
-        test_jar_1 = File.join lib_directory, 'test-jar-1.jar'
-        test_jar_2 = File.join lib_directory, 'test-jar-2.jar'
-        test_text = File.join lib_directory, 'test-text.txt'
-
-        expect(File.exists?(test_jar_1)).to be_true
-        expect(File.symlink?(test_jar_1)).to be_true
-        expect(File.readlink(test_jar_1)).to eq('../.lib/test-jar-1.jar')
-
-        expect(File.exists?(test_jar_2)).to be_true
-        expect(File.symlink?(test_jar_2)).to be_true
-        expect(File.readlink(test_jar_2)).to eq('../.lib/test-jar-2.jar')
-
-        expect(File.exists?(test_text)).to be_false
       end
     end
 

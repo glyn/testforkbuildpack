@@ -57,7 +57,7 @@ module JavaBuildpack::Container
     # @return [void]
     def compile
       system "chmod +x #{Play.start_script @play_root}"
-      link_libs
+      add_libs_to_classpath
     end
 
     # Creates the command to run the Play application.
@@ -94,12 +94,26 @@ module JavaBuildpack::Container
       play_jar(lib(root))
     end
 
-    def link_libs
+    def add_libs_to_classpath
       libs = ContainerUtils.libs(@app_dir, @lib_directory)
 
       if libs
-        lib_target = [Play.lib(@play_root), Play.staged(@play_root)].find { |target| Play.play_jar(target) }
-        libs.each { |lib| system "ln -sfn #{File.join '..', lib} #{lib_target}" }
+        start_script = File.join(@play_root, START_SCRIPT)
+        start_script_content = File.read(start_script)
+        matched_content, classpath = /(?: -cp \"(.+)\" | -cp (\S+) )/.match(start_script_content).to_a.compact
+        if matched_content && classpath
+          classpath_extension = libs.map do |lib|
+            ":`dirname $0`/#{lib.relative_path_from(Pathname.new(start_script).relative_path_from(Pathname.new(@app_dir)))}"
+          end.join
+          modified_matched_content = matched_content.gsub(classpath, "#{classpath}#{classpath_extension}")
+          start_script_content.gsub!(matched_content, modified_matched_content)
+
+          File.open(start_script, 'w') do |f|
+            f.write(start_script_content)
+          end
+        else
+          $stderr.puts "-----> WARNING: Could not modify the start script to augment the classpath. Leaving the script unmodified"
+        end
       end
     end
 
@@ -125,7 +139,7 @@ module JavaBuildpack::Container
     end
 
     def self.start_script(root)
-      Dir[File.join(root, START_SCRIPT)].first
+      root && File.directory?(root) ? Dir[File.join(root, START_SCRIPT)].first : false
     end
 
     def start_script_relative(app_dir, play_root)
