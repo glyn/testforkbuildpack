@@ -20,9 +20,9 @@ module JavaBuildpack::Framework
 
   describe SpringAutoReconfiguration do
 
-    AUTO_RECONFIGURATION_VERSION = JavaBuildpack::Util::TokenizedVersion.new('0.6.8')
+    SPRING_AUTO_RECONFIGURATION_VERSION = JavaBuildpack::Util::TokenizedVersion.new('0.6.8')
 
-    AUTO_RECONFIGURATION_DETAILS = [AUTO_RECONFIGURATION_VERSION, 'test-auto-reconfiguration-uri']
+    SPRING_AUTO_RECONFIGURATION_DETAILS = [SPRING_AUTO_RECONFIGURATION_VERSION, 'test-auto-reconfiguration-uri']
 
     let(:application_cache) { double('ApplicationCache') }
     let(:web_xml_modifier) { double('WebXmlModifier') }
@@ -33,7 +33,7 @@ module JavaBuildpack::Framework
     end
 
     it 'should detect with Spring JAR' do
-      JavaBuildpack::Repository::ConfiguredItem.stub(:find_item).and_return(AUTO_RECONFIGURATION_DETAILS)
+      JavaBuildpack::Repository::ConfiguredItem.stub(:find_item).and_return(SPRING_AUTO_RECONFIGURATION_DETAILS)
 
       detected = SpringAutoReconfiguration.new(
         :app_dir => 'spec/fixtures/framework_auto_reconfiguration_servlet_3',
@@ -55,7 +55,7 @@ module JavaBuildpack::Framework
         lib_directory = File.join root, '.lib'
         Dir.mkdir lib_directory
 
-        JavaBuildpack::Repository::ConfiguredItem.stub(:find_item).and_return(AUTO_RECONFIGURATION_DETAILS)
+        JavaBuildpack::Repository::ConfiguredItem.stub(:find_item).and_return(SPRING_AUTO_RECONFIGURATION_DETAILS)
         JavaBuildpack::Util::ApplicationCache.stub(:new).and_return(application_cache)
         application_cache.stub(:get).with('test-auto-reconfiguration-uri').and_yield(File.open('spec/fixtures/stub-auto-reconfiguration.jar'))
 
@@ -75,7 +75,7 @@ module JavaBuildpack::Framework
         FileUtils.cp_r 'spec/fixtures/framework_auto_reconfiguration_servlet_2/.', root
         web_xml = File.join root, 'WEB-INF', 'web.xml'
 
-        JavaBuildpack::Repository::ConfiguredItem.stub(:find_item).and_return(AUTO_RECONFIGURATION_DETAILS)
+        JavaBuildpack::Repository::ConfiguredItem.stub(:find_item).and_return(SPRING_AUTO_RECONFIGURATION_DETAILS)
         JavaBuildpack::Util::ApplicationCache.stub(:new).and_return(application_cache)
         application_cache.stub(:get).with('test-auto-reconfiguration-uri').and_yield(File.open('spec/fixtures/stub-auto-reconfiguration.jar'))
         JavaBuildpack::Framework::WebXmlModifier.stub(:new).and_return(web_xml_modifier)
